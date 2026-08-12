@@ -106,9 +106,7 @@ class PurgedWalkForwardSplit:
         """Return ordered folds; timestamps must be strictly increasing."""
         if len(timestamps) < 2:
             raise ValueError("at least two timestamps are required")
-        if any(
-            right <= left for left, right in zip(timestamps, timestamps[1:], strict=False)
-        ):
+        if any(right <= left for left, right in zip(timestamps, timestamps[1:], strict=False)):
             raise ValueError("timestamps must be strictly increasing")
         n_observations = len(timestamps)
         first_test_start = n_observations - self.n_splits * self.test_size

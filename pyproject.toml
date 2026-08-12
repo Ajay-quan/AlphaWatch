@@ -19,6 +19,9 @@ dependencies = [
   "tzdata>=2024.1",
 ]
 
+[project.scripts]
+alphawatch = "alphawatch.cli:main"
+
 [project.optional-dependencies]
 dev = [
   "hypothesis>=6.120,<7",

@@ -12,9 +12,7 @@ from alphawatch.research.validation import (
 
 def test_rank_ic_label_starts_after_prediction_date() -> None:
     # The first eligible point has trailing mean 1.0 and a future mean -1.0.
-    result = rank_ic_deterioration_labels(
-        [1.0, 1.0, 1.0, -1.0, -1.0], horizon=2, trailing_window=3
-    )
+    result = rank_ic_deterioration_labels([1.0, 1.0, 1.0, -1.0, -1.0], horizon=2, trailing_window=3)
     assert result.valid.tolist() == [False, False, True, False, False]
     assert result.label.tolist() == [False, False, True, False, False]
     assert result.trailing_mean[2] == pytest.approx(1.0)
@@ -34,9 +32,7 @@ def test_purged_folds_remove_overlapping_forward_labels_and_embargo() -> None:
 
 def test_splitter_rejects_non_chronological_timestamps() -> None:
     with pytest.raises(ValueError, match="strictly increasing"):
-        PurgedWalkForwardSplit(
-            n_splits=1, test_size=2, label_horizon=1, min_train_size=2
-        ).split(
+        PurgedWalkForwardSplit(n_splits=1, test_size=2, label_horizon=1, min_train_size=2).split(
             [date(2020, 1, 2), date(2020, 1, 1), date(2020, 1, 3), date(2020, 1, 4)]
         )
 

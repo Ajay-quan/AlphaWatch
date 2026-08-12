@@ -71,9 +71,7 @@ def test_fundamental_signs() -> None:
             "cash_flow_operations": [20.0],
         }
     )
-    result = compute_fundamental_signals(frame, datetime(2024, 1, 2, tzinfo=UTC)).row(
-        0, named=True
-    )
+    result = compute_fundamental_signals(frame, datetime(2024, 1, 2, tzinfo=UTC)).row(0, named=True)
     assert result["value"] == 0.5
     assert result["profitability"] == 0.2
     assert result["investment"] == pytest.approx(-0.2)

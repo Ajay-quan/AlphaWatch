@@ -48,3 +48,33 @@ def information_coefficient(
         right = np.argsort(np.argsort(right)).astype(float)
     result = np.corrcoef(left, right)[0, 1]
     return float(result)
+
+
+def exposure_diagnostics(
+    weights: list[float], beta: list[float], size: list[float], liquidity: list[float]
+) -> dict[str, float]:
+    lengths = {len(weights), len(beta), len(size), len(liquidity)}
+    if len(lengths) != 1 or not weights:
+        raise ValueError("equal, non-empty exposure vectors are required")
+    w = np.asarray(weights, dtype=float)
+    return {
+        "net_exposure": float(w.sum()),
+        "gross_exposure": float(np.abs(w).sum()),
+        "beta_exposure": float(w @ np.asarray(beta, dtype=float)),
+        "size_exposure": float(w @ np.asarray(size, dtype=float)),
+        "liquidity_exposure": float(w @ np.asarray(liquidity, dtype=float)),
+        "largest_absolute_weight": float(np.abs(w).max()),
+    }
+
+
+def rolling_metrics(
+    returns: list[float], window: int, annualization: int = 252
+) -> list[dict[str, float]]:
+    if window < 2:
+        raise ValueError("window must be at least two")
+    if len(returns) < window:
+        return []
+    return [
+        performance_metrics(returns[end - window : end], annualization)
+        for end in range(window, len(returns) + 1)
+    ]

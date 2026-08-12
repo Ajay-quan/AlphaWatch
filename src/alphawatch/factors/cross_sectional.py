@@ -52,3 +52,12 @@ def neutralize(frame: pl.DataFrame, column: str, controls: list[str]) -> pl.Data
         pl.Series(f"{column}_neutral", residuals)
     )
     return frame.join(residual_frame, on="security_id", how="left")
+
+
+def group_neutralize(frame: pl.DataFrame, column: str, group: str) -> pl.DataFrame:
+    """Remove contemporaneous categorical group means, e.g. sector effects."""
+    if group not in frame.columns:
+        raise ValueError(f"missing neutralization group: {group}")
+    return frame.with_columns(
+        (pl.col(column) - pl.col(column).mean().over(group)).alias(f"{column}_neutral")
+    )

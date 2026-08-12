@@ -40,9 +40,21 @@ def test_paired_block_ci_and_placebo_are_reproducible() -> None:
 
 def test_experiment_manifest_is_immutable_and_serialized(tmp_path) -> None:
     manifest = ExperimentManifest(
-        "run-1", datetime.now(UTC), "abc123", "config", "data-v1", datetime.now(UTC),
-        "factor-v1", "features-v1", "rank-ic-3m", "logistic-v1", "2010:2017", "2018:2020",
-        "2021:2022", "cost-v1", 7,
+        "run-1",
+        datetime.now(UTC),
+        "abc123",
+        "config",
+        "data-v1",
+        datetime.now(UTC),
+        "factor-v1",
+        "features-v1",
+        "rank-ic-3m",
+        "logistic-v1",
+        "2010:2017",
+        "2018:2020",
+        "2021:2022",
+        "cost-v1",
+        7,
     )
     target = write_experiment_manifest(manifest, tmp_path)
     assert '"experiment_id": "run-1"' in target.read_text()
