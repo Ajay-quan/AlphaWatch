@@ -13,6 +13,8 @@ from typing import TypeAlias
 
 import numpy as np
 
+from .contracts import ResearchIntegrityError
+
 Timestamp: TypeAlias = date | datetime
 
 
@@ -160,3 +162,69 @@ def moving_block_bootstrap_ci(
         float(np.quantile(estimates, alpha)),
         float(np.quantile(estimates, 1 - alpha)),
     )
+
+
+@dataclass(frozen=True)
+class PurgedFold:
+    """A variable-width chronological validation block with explicit timestamps."""
+
+    train_indices: tuple[int, ...]
+    validation_indices: tuple[int, ...]
+    validation_start: datetime
+    validation_end: datetime
+
+
+def chronological_purged_folds(
+    prediction_times: Sequence[datetime],
+    label_end_times: Sequence[datetime],
+    n_splits: int,
+    embargo_observations: int = 0,
+    min_train_size: int = 1,
+    training_window_observations: int | None = None,
+) -> list[PurgedFold]:
+    """Create leakage-safe walk-forward folds for labels with explicit end times."""
+    n = len(prediction_times)
+    if n != len(label_end_times) or n < 2:
+        raise ResearchIntegrityError(
+            "prediction and label-end times must be equally sized with >= 2 rows"
+        )
+    if n_splits < 1 or embargo_observations < 0 or min_train_size < 1:
+        raise ResearchIntegrityError("invalid fold settings")
+    if training_window_observations is not None and training_window_observations < 1:
+        raise ResearchIntegrityError("invalid training window")
+    if any(a >= b for a, b in zip(prediction_times, prediction_times[1:], strict=False)):
+        raise ResearchIntegrityError("prediction times must be strictly increasing")
+    if any(end < start for start, end in zip(prediction_times, label_end_times, strict=False)):
+        raise ResearchIntegrityError("label end cannot precede its prediction timestamp")
+
+    first_validation = max(min_train_size, n // (n_splits + 1))
+    block = max(1, (n - first_validation) // n_splits)
+    folds: list[PurgedFold] = []
+    for split in range(n_splits):
+        validation_start_index = first_validation + split * block
+        validation_stop = n if split == n_splits - 1 else min(n, validation_start_index + block)
+        if validation_start_index >= n:
+            break
+        cutoff = max(0, validation_start_index - embargo_observations)
+        train_start = (
+            max(0, cutoff - training_window_observations) if training_window_observations else 0
+        )
+        train = tuple(
+            i
+            for i in range(train_start, cutoff)
+            if label_end_times[i] < prediction_times[validation_start_index]
+        )
+        if len(train) >= min_train_size:
+            folds.append(
+                PurgedFold(
+                    train,
+                    tuple(range(validation_start_index, validation_stop)),
+                    prediction_times[validation_start_index],
+                    prediction_times[validation_stop - 1],
+                )
+            )
+    if not folds:
+        raise ResearchIntegrityError(
+            "no valid folds; enlarge history or reduce purge/embargo settings"
+        )
+    return folds

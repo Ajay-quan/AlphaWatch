@@ -42,7 +42,7 @@ def negative_mean_cusum(
     statistic = np.zeros(len(observations), dtype=float)
     events: list[int] = []
     for index in range(training_window, len(observations)):
-        increment = (mean - observations[index])
+        increment = mean - observations[index]
         statistic[index] = max(0.0, statistic[index - 1] + increment)
         if statistic[index] >= threshold:
             events.append(index)
