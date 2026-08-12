@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+dist/
+build/
+data/bronze/**
+data/silver/**
+data/gold/**
+!data/**/.gitkeep
+artifacts/
+.env
+
