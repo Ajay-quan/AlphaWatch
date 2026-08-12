@@ -9,10 +9,10 @@ instead of shuffled train/test splits or full-sample label thresholds. See the
 statistical protocol in `docs/STATISTICAL_VALIDITY_PROTOCOL.md` before claiming
 predictive or economic value.
 
-AlphaWatch is a point-in-time-correct research platform for monitoring systematic
-equity factors. This repository currently contains the Person 1 foundation: data
-contracts, immutable-ingestion metadata, temporal security identity resolution,
-leakage guards, factor calculations, portfolio construction, costs, and tests.
+AlphaWatch is an in-development point-in-time quantitative research platform. The repository
+currently contains foundational data contracts, identity resolution, leakage guards, factor
+prototypes, portfolio primitives and tests. It is not yet a production-ready or empirically
+certified research system.
 
 ## Non-negotiable invariant
 
@@ -23,7 +23,7 @@ labels, never identifiers; all analytical records use a permanent `security_id`.
 
 ```bash
 python -m venv .venv
-.venv/bin/pip install -e '.[dev]'
+.venv/bin/pip install '.[dev]'
 .venv/bin/pytest
 ```
 

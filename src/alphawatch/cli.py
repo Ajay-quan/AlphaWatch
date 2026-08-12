@@ -12,9 +12,11 @@ from alphawatch.data.ingestion import BronzeWriter, ProviderResponse
 from alphawatch.data.reporting import price_quality_report
 from alphawatch.data.returns import assert_return_identity, build_returns
 from alphawatch.data.storage import ParquetLake
+from alphawatch.data.universe import rolling_universe
 from alphawatch.factors.engine import build_fundamental_factor_table
 from alphawatch.portfolio.backtest import long_short_backtest
 from alphawatch.portfolio.costs import LinearQuadraticCostModel
+from alphawatch.providers.alpha_vantage import AlphaVantageDailyAdjustedProvider
 from alphawatch.providers.nasdaq import NasdaqSymbolDirectoryProvider
 from alphawatch.providers.sec import SecCompanyFactsProvider
 
@@ -46,6 +48,13 @@ def build_parser() -> argparse.ArgumentParser:
     backtest.add_argument("--input", type=Path, required=True)
     backtest.add_argument("--output", type=Path, required=True)
     backtest.add_argument("--quantile", type=float, default=0.2)
+    prices = commands.add_parser("ingest-alpha-vantage-prices")
+    prices.add_argument("--symbol", required=True)
+    prices.add_argument("--security-id", required=True)
+    prices.add_argument("--api-key", required=True)
+    prices.add_argument("--data-root", type=Path, required=True)
+    prices.add_argument("--version", required=True)
+    prices.add_argument("--share-class", default="common")
     return parser
 
 
@@ -156,6 +165,44 @@ def run_backtest(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_ingest_alpha_vantage(args: argparse.Namespace) -> int:
+    requested_at = datetime.now(UTC)
+    provider = AlphaVantageDailyAdjustedProvider(args.api_key)
+    payload = provider.fetch(args.symbol)
+    response = ProviderResponse(
+        payload,
+        "alpha-vantage-daily-adjusted",
+        "",
+        requested_at.date().isoformat(),
+        args.version,
+        "1.0.0",
+        requested_at,
+    )
+    manifest = BronzeWriter(args.data_root / "bronze").persist(response)
+    prices = provider.parse(payload, args.security_id).with_columns(
+        pl.lit(args.share_class).alias("share_class")
+    )
+    returns = build_returns(prices, adjusted_includes_distributions=True)
+    universe = rolling_universe(returns)
+    lake = ParquetLake(args.data_root)
+    price_artifact = lake.write("silver", "prices", args.version, prices, "1.0.0")
+    return_artifact = lake.write("silver", "returns", args.version, returns, "1.0.0")
+    universe_artifact = lake.write("gold", "universe", args.version, universe, "1.0.0")
+    report = price_quality_report(returns, UsEquityCalendar(), False)
+    report.write(return_artifact.path.parent / "quality-report.json")
+    print(
+        json.dumps(
+            {
+                "run_id": manifest.ingestion_run_id,
+                "prices": str(price_artifact.path),
+                "returns": str(return_artifact.path),
+                "universe": str(universe_artifact.path),
+            }
+        )
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     handlers = {
@@ -164,6 +211,7 @@ def main(argv: list[str] | None = None) -> int:
         "ingest-nasdaq-symbols": run_ingest_nasdaq,
         "build-fundamental-factors": run_build_fundamentals,
         "backtest-factor": run_backtest,
+        "ingest-alpha-vantage-prices": run_ingest_alpha_vantage,
     }
     return handlers[args.command](args)
 

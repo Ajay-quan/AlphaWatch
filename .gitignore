@@ -7,10 +7,10 @@ __pycache__/
 .coverage
 dist/
 build/
+*.egg-info/
 data/bronze/**
 data/silver/**
 data/gold/**
 !data/**/.gitkeep
 artifacts/
 .env
-
