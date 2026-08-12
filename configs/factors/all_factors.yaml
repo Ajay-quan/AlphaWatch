@@ -1,0 +1,47 @@
+factors:
+  - name: momentum_12_minus_1
+    version: 1.0.0
+    parameters: {lookback_sessions: 252, skip_sessions: 21}
+  - name: short_term_reversal
+    version: 1.0.0
+    parameters: {lookback_sessions: 21}
+  - name: value
+    version: 1.0.0
+    sector_neutral: true
+    size_neutral: true
+  - name: size
+    version: 1.0.0
+    sector_neutral: true
+  - name: profitability
+    version: 1.0.0
+    sector_neutral: true
+    size_neutral: true
+  - name: investment
+    version: 1.0.0
+    sector_neutral: true
+    size_neutral: true
+  - name: quality
+    version: 1.0.0
+    sector_neutral: true
+    size_neutral: true
+  - name: low_volatility
+    version: 1.0.0
+    sector_neutral: true
+  - name: beta
+    version: 1.0.0
+    sector_neutral: true
+  - name: liquidity
+    version: 1.0.0
+    sector_neutral: true
+  - name: turnover
+    version: 1.0.0
+    sector_neutral: true
+  - name: accrual_quality
+    version: 1.0.0
+    sector_neutral: true
+    size_neutral: true
+defaults:
+  winsorization: {lower: 0.01, upper: 0.99}
+  standardization: zscore
+  ranking: true
+
