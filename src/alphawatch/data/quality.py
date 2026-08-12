@@ -39,7 +39,7 @@ def enforce_frame_pit(frame: pl.DataFrame, prediction_time: datetime) -> None:
     if "available_at" not in frame.columns:
         raise DataContractError("available_at is mandatory")
     available_type = frame.schema["available_at"]
-    if available_type.base_type() != pl.Datetime or available_type.time_zone != "UTC":
+    if not isinstance(available_type, pl.Datetime) or available_type.time_zone != "UTC":
         raise DataContractError("available_at must be a UTC timezone-aware datetime column")
     if frame["available_at"].null_count():
         raise DataContractError("available_at cannot contain nulls")
