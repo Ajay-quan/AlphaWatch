@@ -1,0 +1,31 @@
+universe:
+  country: US
+  security_type: common_stock
+  exchanges: [XNAS, XNYS, XASE]
+  include_adrs: false
+  include_reits: true
+  include_financials: true
+  minimum_price_usd: 5.0
+  minimum_median_dollar_volume_60d: 1000000
+  minimum_history_sessions: 252
+timing:
+  signal_at: market_close
+  execute_at: next_session_close
+  sec_conservative_lag_minutes: 5
+portfolio:
+  reference_aum_usd: 10000000
+  long_gross: 0.5
+  short_gross: 0.5
+  quantile: 0.2
+  rebalance: monthly
+  maximum_adv_participation: 0.01
+costs:
+  version: public-prototype-v1
+  commission_bps: 0.5
+  half_spread_bps: 5.0
+  slippage_bps: 2.5
+  quadratic_bps: 10.0
+disclosures:
+  survivorship_safe: false
+  reason: Public symbol directories are current snapshots and public price histories may omit delisted securities.
+

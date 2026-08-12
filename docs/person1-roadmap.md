@@ -10,21 +10,23 @@
 - Dollar-neutral rank portfolio and versioned transaction-cost model
 - Golden and leakage tests
 
-## Milestone 2 — provider-neutral data lake
+## Milestone 2 — provider-neutral data lake (implemented foundation)
 
-- Provider adapter protocol, raw-response writer, atomic sidecar manifests
-- Polars schema validation and DuckDB inspection utilities
-- Idempotent Bronze-to-Silver normalization
-- Adjustments, delistings, exchange calendar, duplicate/missingness policy
-- Dataset-level quality reports and version manifests
+- Provider adapter protocol, raw-response writer, atomic sidecar manifests — complete
+- SEC Company Facts and Nasdaq current-symbol adapters — complete
+- Public daily-price CSV contract — complete
+- Polars schema validation and Parquet version manifests — complete
+- Duplicate, range, null, and PIT rejection — complete
+- Adjustments, delistings, and exchange-calendar normalization — provider dependent
 
-## Milestone 3 — complete initial factor library
+## Milestone 3 — initial factor library (calculation layer implemented)
 
-- Size, liquidity, turnover
-- Value, profitability, investment, quality and accrual quality using filing timestamps
-- Winsorization, standardization, sector/size neutralization
-- Equal/value/volatility/rank weighting and holding-period overlap
-- Gross/net returns and exposure diagnostics
+- Price factors: momentum, reversal, low volatility — complete
+- Market factors: beta, liquidity, turnover — complete
+- Fundamental formulas: size, value, profitability, investment, quality, accruals — complete
+- Winsorization, standardization, ranking, numeric neutralization — complete
+- Equal and auxiliary weighting — complete
+- Rolling portfolios, holding-period overlap, and exposure diagnostics — pending
 
 ## Data acquisition decision
 
@@ -32,3 +34,6 @@ Do not silently use free current-constituent lists for historical work. Choose a
 that supplies delisted securities, identifier history, corporate actions, filing/public
 timestamps, and redistribution terms. Keep provider-specific fields behind adapters.
 
+For the public-data build, current snapshots are archived prospectively and research
+outputs are explicitly marked non-survivorship-safe. This is a methodological disclosure,
+not a software defect that can be repaired by guessing historical constituents.

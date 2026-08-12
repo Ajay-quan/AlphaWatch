@@ -14,6 +14,8 @@ access date and the design decision supported by every source.
 | [SEC EDGAR access guidance](https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data) | Preserve accession IDs and acceptance metadata; identify automated clients | 2026-08-13 |
 | [SEC timestamp guidance](https://www.sec.gov/about/webmaster-frequently-asked-questions) | Keep report period separate from acceptance time; add a conservative dissemination lag | 2026-08-13 |
 | [Kenneth French momentum construction](https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/Data_Library/det_mom_factor_daily.html) | Validate the skip-month convention and distinguish our generic signal from the French 2×3 benchmark | 2026-08-13 |
+| [SEC EDGAR API documentation](https://www.sec.gov/search-filings/edgar-application-programming-interfaces) | Use Company Facts vintages and bulk archives; retain filing/accession metadata | 2026-08-13 |
+| [Nasdaq symbol definitions](https://www.nasdaqtrader.com/trader.aspx?id=symboldirdefs) | Parse official current security fields and archive file-creation snapshots prospectively | 2026-08-13 |
 
 ## Important methodological choice
 
@@ -25,4 +27,3 @@ must apply a documented conservative availability rule and retain the raw accept
 The implemented momentum class is an individual-security signal. It is not labeled as the
 Fama–French momentum factor, whose published construction uses size intersections and NYSE
 breakpoints. A later benchmark implementation should reproduce that methodology separately.
-

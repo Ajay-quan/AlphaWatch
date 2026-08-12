@@ -27,3 +27,13 @@ PYTHONPATH=src python -m unittest discover -s tests -v
 See `docs/person1-roadmap.md`, `docs/data-contracts.md`, and
 `docs/point-in-time-policy.md` before adding a data provider.
 
+## Public-data policy
+
+The reference adapters support SEC Company Facts, Nasdaq Trader symbol snapshots,
+and provider-neutral daily-price CSV files. Public symbol snapshots are not historical
+membership data. Results built from them must retain `survivorship_safe: false` from
+`configs/research.yaml`; the software refuses to turn a limitation into a false claim.
+
+The default research convention assumes a USD 10 million long-short portfolio,
+next-session-close execution, a 1% ADV cap, and a transparent versioned cost model.
+These are defensible prototype assumptions, not calibrated live-trading estimates.
