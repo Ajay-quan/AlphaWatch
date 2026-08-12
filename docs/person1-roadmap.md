@@ -1,5 +1,11 @@
 # Person 1 roadmap
 
+## Current audited status
+
+Person 1 is approximately 40% complete. The repository contains useful foundations but no connected
+real-price-to-factor-return production workflow. The next release must satisfy
+`person1-definition-of-done.md`; documentation is not evidence of implementation.
+
 ## Milestone 1 — implemented foundation
 
 - Canonical UTC-aware contracts and fail-closed PIT guard
