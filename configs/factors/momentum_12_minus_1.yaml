@@ -1,0 +1,19 @@
+name: momentum_12_minus_1
+version: 1.0.0
+lookback_sessions: 252
+skip_sessions: 21
+minimum_observations: 253
+winsorization:
+  method: cross_sectional_quantile
+  lower: 0.01
+  upper: 0.99
+standardization: zscore
+neutralization:
+  sector: true
+  size: false
+portfolio:
+  construction: long_short
+  weighting: rank
+  quantile: 0.20
+  rebalance: monthly
+

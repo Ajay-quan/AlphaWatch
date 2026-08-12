@@ -1,20 +1,51 @@
 [build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
 
 [project]
 name = "alphawatch"
 version = "0.1.0"
-description = "Point-in-time-safe statistical research controls for AlphaWatch"
+description = "Point-in-time-correct equity factor research infrastructure"
+readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["numpy>=1.26"]
+license = {text = "MIT"}
+dependencies = [
+  "duckdb>=1.4,<2",
+  "numpy>=2.0,<3",
+  "polars>=1.35,<2",
+  "pyarrow>=18,<24",
+  "pydantic>=2.10,<3",
+  "PyYAML>=6.0,<7",
+  "tzdata>=2024.1",
+]
+
+[project.scripts]
+alphawatch = "alphawatch.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = [
+  "hypothesis>=6.120,<7",
+  "mypy>=1.14,<2",
+  "pytest>=8.3,<10",
+  "pytest-cov>=6,<8",
+  "ruff>=0.9,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/alphawatch"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+addopts = "-q --strict-markers"
 
 [tool.ruff]
+target-version = "py311"
 line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["alphawatch"]
