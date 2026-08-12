@@ -19,7 +19,10 @@ def test_cusum_rejects_constant_reference_window() -> None:
 
 def test_decay_policy_lags_execution_and_charges_turnover_costs() -> None:
     result = simulate_decay_policy(
-        [0.1, 0.1, 0.1], [0.1, 0.9, 0.1], threshold=0.5, reduced_exposure=0.5,
+        [0.1, 0.1, 0.1],
+        [0.1, 0.9, 0.1],
+        threshold=0.5,
+        reduced_exposure=0.5,
         cost_per_turnover=0.02,
     )
     assert result.exposures.tolist() == [1.0, 1.0, 0.5]

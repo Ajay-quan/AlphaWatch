@@ -185,7 +185,9 @@ def chronological_purged_folds(
     """Create leakage-safe walk-forward folds for labels with explicit end times."""
     n = len(prediction_times)
     if n != len(label_end_times) or n < 2:
-        raise ResearchIntegrityError("prediction and label-end times must be equally sized with >= 2 rows")
+        raise ResearchIntegrityError(
+            "prediction and label-end times must be equally sized with >= 2 rows"
+        )
     if n_splits < 1 or embargo_observations < 0 or min_train_size < 1:
         raise ResearchIntegrityError("invalid fold settings")
     if training_window_observations is not None and training_window_observations < 1:
@@ -204,16 +206,25 @@ def chronological_purged_folds(
         if validation_start_index >= n:
             break
         cutoff = max(0, validation_start_index - embargo_observations)
-        train_start = max(0, cutoff - training_window_observations) if training_window_observations else 0
+        train_start = (
+            max(0, cutoff - training_window_observations) if training_window_observations else 0
+        )
         train = tuple(
-            i for i in range(train_start, cutoff)
+            i
+            for i in range(train_start, cutoff)
             if label_end_times[i] < prediction_times[validation_start_index]
         )
         if len(train) >= min_train_size:
-            folds.append(PurgedFold(
-                train, tuple(range(validation_start_index, validation_stop)),
-                prediction_times[validation_start_index], prediction_times[validation_stop - 1],
-            ))
+            folds.append(
+                PurgedFold(
+                    train,
+                    tuple(range(validation_start_index, validation_stop)),
+                    prediction_times[validation_start_index],
+                    prediction_times[validation_stop - 1],
+                )
+            )
     if not folds:
-        raise ResearchIntegrityError("no valid folds; enlarge history or reduce purge/embargo settings")
+        raise ResearchIntegrityError(
+            "no valid folds; enlarge history or reduce purge/embargo settings"
+        )
     return folds

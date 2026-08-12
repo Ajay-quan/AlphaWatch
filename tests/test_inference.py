@@ -14,4 +14,6 @@ def test_benjamini_hochberg_returns_monotone_adjusted_values() -> None:
     results = benjamini_hochberg({"H1": 0.01, "H2": 0.03, "H3": 0.20}, 0.05)
     assert [item.hypothesis_id for item in results] == ["H1", "H2", "H3"]
     assert [item.rejected for item in results] == [True, True, False]
-    assert [item.adjusted_p_value for item in results] == sorted(item.adjusted_p_value for item in results)
+    assert [item.adjusted_p_value for item in results] == sorted(
+        item.adjusted_p_value for item in results
+    )

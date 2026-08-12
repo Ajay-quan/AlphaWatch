@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 import numpy as np
 
@@ -19,8 +19,11 @@ class ConfidenceInterval:
 
 
 def moving_block_bootstrap_mean_ci(
-    values: Sequence[float], block_size: int, n_resamples: int = 2_000,
-    confidence: float = 0.95, seed: int = 0,
+    values: Sequence[float],
+    block_size: int,
+    n_resamples: int = 2_000,
+    confidence: float = 0.95,
+    seed: int = 0,
 ) -> ConfidenceInterval:
     """Percentile CI for a serially dependent mean using circular moving blocks."""
     x = np.asarray(values, dtype=float)
@@ -35,7 +38,12 @@ def moving_block_bootstrap_mean_ci(
     samples = x[(starts[..., None] + offsets) % len(x)].reshape(n_resamples, -1)[:, : len(x)]
     means = samples.mean(axis=1)
     tail = (1 - confidence) / 2
-    return ConfidenceInterval(float(x.mean()), float(np.quantile(means, tail)), float(np.quantile(means, 1 - tail)), confidence)
+    return ConfidenceInterval(
+        float(x.mean()),
+        float(np.quantile(means, tail)),
+        float(np.quantile(means, 1 - tail)),
+        confidence,
+    )
 
 
 @dataclass(frozen=True)
@@ -46,7 +54,9 @@ class MultipleTestingResult:
     rejected: bool
 
 
-def benjamini_hochberg(p_values: dict[str, float], false_discovery_rate: float = 0.05) -> list[MultipleTestingResult]:
+def benjamini_hochberg(
+    p_values: dict[str, float], false_discovery_rate: float = 0.05
+) -> list[MultipleTestingResult]:
     """Control false discovery rate across the declared family of hypotheses."""
     if not p_values or not 0 < false_discovery_rate < 1:
         raise ResearchIntegrityError("p-values and false discovery rate are required")
@@ -57,4 +67,7 @@ def benjamini_hochberg(p_values: dict[str, float], false_discovery_rate: float =
     adjusted = [min(1.0, p * m / (rank + 1)) for rank, (_, p) in enumerate(ordered)]
     for i in range(m - 2, -1, -1):
         adjusted[i] = min(adjusted[i], adjusted[i + 1])
-    return [MultipleTestingResult(name, p, adjusted[rank], adjusted[rank] <= false_discovery_rate) for rank, (name, p) in enumerate(ordered)]
+    return [
+        MultipleTestingResult(name, p, adjusted[rank], adjusted[rank] <= false_discovery_rate)
+        for rank, (name, p) in enumerate(ordered)
+    ]

@@ -10,7 +10,9 @@ from alphawatch.research.labels import (
 
 def test_forward_label_is_not_available_at_prediction_time() -> None:
     times = [datetime(2020, 1, 1) + timedelta(days=i) for i in range(4)]
-    labels = future_rank_ic_deterioration(times, [0.1, -0.1, -0.2, 0.2], horizon=2, deterioration_threshold=0)
+    labels = future_rank_ic_deterioration(
+        times, [0.1, -0.1, -0.2, 0.2], horizon=2, deterioration_threshold=0
+    )
     assert len(labels) == 2
     assert labels[0].value == 1.0
     assert labels[0].available_at == times[2]

@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from .contracts import ResearchIntegrityError
 from .hypotheses import ResearchPhase
 from .inference import ConfidenceInterval
 
 
-class ConclusionStrength(str, Enum):
+class ConclusionStrength(StrEnum):
     INCONCLUSIVE = "inconclusive"
     ASSOCIATION = "out_of_sample_association"
     ROBUST_ASSOCIATION = "robust_out_of_sample_association"

@@ -1,5 +1,6 @@
 """Statistically defensible validation tools for factor-decay research."""
 
+from alphawatch.research.contracts import AvailabilityViolation, ResearchIntegrityError
 from alphawatch.research.evaluation import (
     CalibrationBin,
     ClassificationMetrics,
@@ -16,11 +17,10 @@ from alphawatch.research.validation import (
     DecayLabels,
     Fold,
     PurgedWalkForwardSplit,
+    chronological_purged_folds,
     moving_block_bootstrap_ci,
     rank_ic_deterioration_labels,
-    chronological_purged_folds,
 )
-from alphawatch.research.contracts import AvailabilityViolation, ResearchIntegrityError
 
 __all__ = [
     "CalibrationBin",

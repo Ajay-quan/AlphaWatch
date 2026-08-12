@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Sequence
 
 import numpy as np
 
@@ -30,7 +30,7 @@ def _validate_forward_inputs(
         raise ResearchIntegrityError("horizon must be positive and timestamps must match values")
     if any(not isinstance(timestamp, datetime) for timestamp in timestamps):
         raise ResearchIntegrityError("label timestamps must be datetime instances")
-    if any(left >= right for left, right in zip(timestamps, timestamps[1:])):
+    if any(left >= right for left, right in zip(timestamps, timestamps[1:], strict=False)):
         raise ResearchIntegrityError("label timestamps must be strictly increasing")
     x = np.asarray(values, dtype=float)
     if x.ndim != 1 or not np.isfinite(x).all():
@@ -107,4 +107,6 @@ def future_structural_break(
     timestamps: Sequence[datetime], break_events: Sequence[bool], horizon: int
 ) -> list[ForwardLabel]:
     """Resolved event label for a subsequently detected structural break (Target 4)."""
-    return future_minimum_breach(timestamps, [0.0 if event else 1.0 for event in break_events], horizon, 0.0)
+    return future_minimum_breach(
+        timestamps, [0.0 if event else 1.0 for event in break_events], horizon, 0.0
+    )
