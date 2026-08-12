@@ -1,5 +1,14 @@
 # AlphaWatch
 
+## Research-validity tools
+
+`alphawatch.research` contains the mandatory validation primitives for decay
+research: forward Rank-IC deterioration labels, purged chronological
+walk-forward splits, and moving-block bootstrap confidence intervals. Use these
+instead of shuffled train/test splits or full-sample label thresholds. See the
+statistical protocol in `docs/STATISTICAL_VALIDITY_PROTOCOL.md` before claiming
+predictive or economic value.
+
 AlphaWatch is a point-in-time-correct research platform for monitoring systematic
 equity factors. This repository currently contains the Person 1 foundation: data
 contracts, immutable-ingestion metadata, temporal security identity resolution,
