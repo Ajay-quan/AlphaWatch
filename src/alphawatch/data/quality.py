@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 
 import polars as pl
 
+from alphawatch.data.contracts import require_utc
 from alphawatch.exceptions import DataContractError, LookAheadError
 
 
@@ -31,9 +33,16 @@ def validate_prices(frame: pl.DataFrame) -> QualityReport:
     return QualityReport(frame.height, int(duplicates), nulls)
 
 
-def enforce_frame_pit(frame: pl.DataFrame, prediction_time: object) -> None:
+def enforce_frame_pit(frame: pl.DataFrame, prediction_time: datetime) -> None:
+    """Fail closed unless all records were available in UTC at prediction time."""
+    require_utc(prediction_time, "prediction_time")
     if "available_at" not in frame.columns:
         raise DataContractError("available_at is mandatory")
+    available_type = frame.schema["available_at"]
+    if available_type.base_type() != pl.Datetime or available_type.time_zone != "UTC":
+        raise DataContractError("available_at must be a UTC timezone-aware datetime column")
+    if frame["available_at"].null_count():
+        raise DataContractError("available_at cannot contain nulls")
     count = frame.filter(pl.col("available_at") > pl.lit(prediction_time)).height
     if count:
         raise LookAheadError(f"{count} rows are unavailable at prediction_time")

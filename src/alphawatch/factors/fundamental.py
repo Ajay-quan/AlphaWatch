@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 import polars as pl
 
+from alphawatch.data.quality import enforce_frame_pit
 from alphawatch.exceptions import DataContractError
 
 
-def compute_fundamental_signals(frame: pl.DataFrame) -> pl.DataFrame:
-    """Transparent raw signals; input must already be an as-of-safe snapshot."""
+def compute_fundamental_signals(frame: pl.DataFrame, prediction_time: datetime) -> pl.DataFrame:
+    """Compute raw signals only from fundamental observations known at prediction time."""
     required = {
         "security_id",
         "available_at",
@@ -21,6 +24,7 @@ def compute_fundamental_signals(frame: pl.DataFrame) -> pl.DataFrame:
     missing = required - set(frame.columns)
     if missing:
         raise DataContractError(f"fundamental schema missing columns: {sorted(missing)}")
+    enforce_frame_pit(frame, prediction_time)
     return frame.with_columns(
         (-pl.col("market_cap").log()).alias("size"),
         (pl.col("book_equity") / pl.col("market_cap")).alias("value"),

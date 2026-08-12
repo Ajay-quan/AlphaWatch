@@ -71,10 +71,35 @@ def test_fundamental_signs() -> None:
             "cash_flow_operations": [20.0],
         }
     )
-    result = compute_fundamental_signals(frame).row(0, named=True)
+    result = compute_fundamental_signals(frame, datetime(2024, 1, 2, tzinfo=UTC)).row(
+        0, named=True
+    )
     assert result["value"] == 0.5
     assert result["profitability"] == 0.2
     assert result["investment"] == pytest.approx(-0.2)
+
+
+def test_fundamental_signals_reject_future_availability() -> None:
+    frame = pl.DataFrame(
+        {
+            "security_id": ["a"],
+            "available_at": [datetime(2024, 1, 2, tzinfo=UTC)],
+            "market_cap": [100.0],
+            "book_equity": [50.0],
+            "operating_profit": [10.0],
+            "total_assets": [120.0],
+            "total_assets_lag": [100.0],
+            "accruals": [5.0],
+            "cash_flow_operations": [20.0],
+        }
+    )
+    with pytest.raises(LookAheadError):
+        compute_fundamental_signals(frame, datetime(2024, 1, 1, tzinfo=UTC))
+
+
+def test_pipeline_rejects_non_utc_prediction_timestamp(tmp_path) -> None:
+    with pytest.raises(DataContractError, match="timezone-aware"):
+        run_price_signal_pipeline(prices(), datetime(2024, 1, 3), tmp_path, "bad-time")
 
 
 def test_diagnostics() -> None:
