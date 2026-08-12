@@ -1,0 +1,7 @@
+# Freeze this file's hash in every confirmatory experiment record.
+protocol_version: 1
+primary_hypotheses: [H1, H2, H3, H4, H5]
+familywise_false_discovery_rate: 0.05
+final_test_set: "2019-01-01 through 2025-12-31"
+validation: "chronological purged walk-forward; embargo set from maximum label overlap"
+prohibited: [random_split, test_set_threshold_tuning, causal_claims_from_feature_importance]
