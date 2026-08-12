@@ -66,3 +66,32 @@ def test_cli_builds_returns_and_quality_report(tmp_path) -> None:
     directory = tmp_path / "lake" / "silver" / "returns" / "version=v1"
     assert (directory / "part-00000.parquet").exists()
     assert (directory / "quality-report.json").exists()
+
+
+def test_cli_runs_costed_factor_backtest(tmp_path) -> None:
+    source = tmp_path / "observations.csv"
+    pl.DataFrame(
+        {
+            "date": [date(2024, 1, 31)] * 4,
+            "security_id": ["a", "b", "c", "d"],
+            "signal": [1.0, 2.0, 3.0, 4.0],
+            "forward_return": [-0.1, 0.0, 0.0, 0.1],
+        }
+    ).write_csv(source)
+    output = tmp_path / "backtest"
+    assert (
+        main(
+            [
+                "backtest-factor",
+                "--input",
+                str(source),
+                "--output",
+                str(output),
+                "--quantile",
+                "0.25",
+            ]
+        )
+        == 0
+    )
+    returns = pl.read_parquet(output / "factor_returns.parquet")
+    assert returns["net_return"].item() < returns["gross_return"].item()

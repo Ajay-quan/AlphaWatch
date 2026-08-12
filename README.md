@@ -46,3 +46,21 @@ membership data. Results built from them must retain `survivorship_safe: false` 
 The default research convention assumes a USD 10 million long-short portfolio,
 next-session-close execution, a 1% ADV cap, and a transparent versioned cost model.
 These are defensible prototype assumptions, not calibrated live-trading estimates.
+
+## Person 1 workflows
+
+```bash
+alphawatch ingest-sec-facts --cik 0000320193 \
+  --user-agent "AlphaWatch research@example.com" --data-root data --version 2026-08-13
+alphawatch ingest-nasdaq-symbols \
+  --user-agent "AlphaWatch research@example.com" --data-root data --version 2026-08-13
+alphawatch build-returns --input prices.csv --data-root data --version prices-v1 \
+  --adjusted-includes-distributions
+alphawatch build-fundamental-factors --input fundamentals.parquet \
+  --prediction-time 2026-08-13T20:00:00+00:00 --data-root data --version factors-v1
+alphawatch backtest-factor --input factor_observations.parquet \
+  --output artifacts/momentum-v1 --quantile 0.2
+```
+
+Raw downloaded data is never committed. Every ingestion archives provider bytes, and every
+analytical dataset receives a versioned Parquet artifact and checksum manifest.
