@@ -13,9 +13,11 @@ from alphawatch.data.reporting import price_quality_report
 from alphawatch.data.returns import assert_return_identity, build_returns
 from alphawatch.data.storage import ParquetLake
 from alphawatch.data.universe import rolling_universe
+from alphawatch.diagnostics import factor_diagnostics
 from alphawatch.factors.engine import build_fundamental_factor_table
 from alphawatch.portfolio.backtest import long_short_backtest
 from alphawatch.portfolio.costs import LinearQuadraticCostModel
+from alphawatch.portfolio.engine import PortfolioConfig, Weighting, run_portfolio
 from alphawatch.providers.alpha_vantage import AlphaVantageDailyAdjustedProvider
 from alphawatch.providers.nasdaq import NasdaqSymbolDirectoryProvider
 from alphawatch.providers.sec import SecCompanyFactsProvider
@@ -55,6 +57,20 @@ def build_parser() -> argparse.ArgumentParser:
     prices.add_argument("--data-root", type=Path, required=True)
     prices.add_argument("--version", required=True)
     prices.add_argument("--share-class", default="common")
+    portfolio = commands.add_parser("run-portfolio")
+    portfolio.add_argument("--input", type=Path, required=True)
+    portfolio.add_argument("--data-root", type=Path, required=True)
+    portfolio.add_argument("--version", required=True)
+    portfolio.add_argument("--weighting", choices=list(Weighting), default=Weighting.EQUAL)
+    portfolio.add_argument("--quantile", type=float, default=0.2)
+    portfolio.add_argument("--holding-periods", type=int, default=1)
+    portfolio.add_argument("--rebalance-every", type=int, default=1)
+    portfolio.add_argument("--aum", type=float, default=10_000_000.0)
+    diagnostics = commands.add_parser("build-factor-diagnostics")
+    diagnostics.add_argument("--input", type=Path, required=True)
+    diagnostics.add_argument("--data-root", type=Path, required=True)
+    diagnostics.add_argument("--version", required=True)
+    diagnostics.add_argument("--quantiles", type=int, default=5)
     return parser
 
 
@@ -203,6 +219,34 @@ def run_ingest_alpha_vantage(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_production_portfolio(args: argparse.Namespace) -> int:
+    config = PortfolioConfig(
+        weighting=Weighting(args.weighting),
+        quantile=args.quantile,
+        holding_periods=args.holding_periods,
+        rebalance_every=args.rebalance_every,
+        aum=args.aum,
+    )
+    model = LinearQuadraticCostModel("public-v1", 0.5, 5.0, 2.5, 10.0)
+    weights, returns = run_portfolio(_read_frame(args.input), config, model)
+    lake = ParquetLake(args.data_root)
+    weight_artifact = lake.write("gold", "portfolio_weights", args.version, weights, "1.0.0")
+    return_artifact = lake.write("gold", "factor_returns", args.version, returns, "1.0.0")
+    print(json.dumps({"weights": str(weight_artifact.path), "returns": str(return_artifact.path)}))
+    return 0
+
+
+def run_factor_diagnostics(args: argparse.Namespace) -> int:
+    detail, summary = factor_diagnostics(_read_frame(args.input), args.quantiles)
+    lake = ParquetLake(args.data_root)
+    detail_artifact = lake.write("gold", "factor_diagnostics", args.version, detail, "1.0.0")
+    summary_artifact = lake.write(
+        "gold", "factor_diagnostic_summary", args.version, summary, "1.0.0"
+    )
+    print(json.dumps({"detail": str(detail_artifact.path), "summary": str(summary_artifact.path)}))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     handlers = {
@@ -212,6 +256,8 @@ def main(argv: list[str] | None = None) -> int:
         "build-fundamental-factors": run_build_fundamentals,
         "backtest-factor": run_backtest,
         "ingest-alpha-vantage-prices": run_ingest_alpha_vantage,
+        "run-portfolio": run_production_portfolio,
+        "build-factor-diagnostics": run_factor_diagnostics,
     }
     return handlers[args.command](args)
 

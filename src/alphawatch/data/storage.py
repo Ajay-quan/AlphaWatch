@@ -34,7 +34,11 @@ class ParquetLake:
         if not dataset or "/" in dataset or not version:
             raise DataContractError("dataset and version must be safe, non-empty path components")
         directory = self.root / layer / dataset / f"version={version}"
-        directory.mkdir(parents=True, exist_ok=True)
+        if directory.exists():
+            raise DataContractError(
+                f"immutable dataset version already exists: {layer}/{dataset}/{version}"
+            )
+        directory.mkdir(parents=True, exist_ok=False)
         target = directory / "part-00000.parquet"
         temporary = directory / f".{uuid4().hex}.parquet.tmp"
         frame.write_parquet(temporary, compression="zstd", statistics=True)

@@ -50,7 +50,7 @@ class BronzeWriter:
             checksum_sha256=sha256_file(target),
             ingestion_run_id=resolved_run_id,
         )
-        (directory / "manifest.json").write_text(
-            json.dumps(manifest.to_dict(), sort_keys=True, indent=2) + "\n"
-        )
+        manifest_tmp = directory / ".manifest.tmp"
+        manifest_tmp.write_text(json.dumps(manifest.to_dict(), sort_keys=True, indent=2) + "\n")
+        os.replace(manifest_tmp, directory / "manifest.json")
         return manifest

@@ -3,6 +3,7 @@ from __future__ import annotations
 from math import sqrt
 
 import numpy as np
+import polars as pl
 
 
 def performance_metrics(returns: list[float], annualization: int = 252) -> dict[str, float]:
@@ -78,3 +79,57 @@ def rolling_metrics(
         performance_metrics(returns[end - window : end], annualization)
         for end in range(window, len(returns) + 1)
     ]
+
+
+def factor_diagnostics(
+    observations: pl.DataFrame, quantiles: int = 5
+) -> tuple[pl.DataFrame, pl.DataFrame]:
+    """Produce dated ICs and aggregate IC/quantile-monotonicity diagnostics."""
+    required = {"date", "factor_name", "signal", "forward_return"}
+    missing = required - set(observations.columns)
+    if missing:
+        raise ValueError(f"diagnostic input missing: {sorted(missing)}")
+    if quantiles < 2:
+        raise ValueError("quantiles must be at least two")
+    detail: list[dict[str, object]] = []
+    summary: list[dict[str, object]] = []
+    for factor_frame in observations.partition_by("factor_name", maintain_order=True):
+        factor = str(factor_frame["factor_name"][0])
+        factor_ics: list[float] = []
+        bucket_returns: dict[int, list[float]] = {bucket: [] for bucket in range(quantiles)}
+        for dated in factor_frame.partition_by("date", maintain_order=True):
+            clean = dated.drop_nulls(["signal", "forward_return"]).sort("signal")
+            if clean.height < 2:
+                continue
+            ic = information_coefficient(
+                clean["signal"].to_list(), clean["forward_return"].to_list()
+            )
+            factor_ics.append(ic)
+            buckets = np.floor(np.arange(clean.height) * quantiles / clean.height).astype(int)
+            for bucket, value in zip(buckets, clean["forward_return"], strict=True):
+                bucket_returns[int(bucket)].append(float(value))
+            detail.append(
+                {"date": clean["date"][0], "factor_name": factor, "information_coefficient": ic}
+            )
+        means = [
+            float(np.mean(bucket_returns[index])) if bucket_returns[index] else np.nan
+            for index in range(quantiles)
+        ]
+        monotonicity = (
+            information_coefficient(list(range(quantiles)), means, rank=False)
+            if not any(np.isnan(means))
+            else float("nan")
+        )
+        ic_mean = float(np.mean(factor_ics)) if factor_ics else float("nan")
+        ic_std = float(np.std(factor_ics, ddof=1)) if len(factor_ics) > 1 else float("nan")
+        summary.append(
+            {
+                "factor_name": factor,
+                "observations": len(factor_ics),
+                "ic_mean": ic_mean,
+                "ic_information_ratio": ic_mean / ic_std if ic_std > 0 else float("nan"),
+                "quantile_monotonicity": monotonicity,
+                **{f"q{index + 1}_mean_return": value for index, value in enumerate(means)},
+            }
+        )
+    return pl.DataFrame(detail), pl.DataFrame(summary)

@@ -60,6 +60,10 @@ alphawatch build-fundamental-factors --input fundamentals.parquet \
   --prediction-time 2026-08-13T20:00:00+00:00 --data-root data --version factors-v1
 alphawatch backtest-factor --input factor_observations.parquet \
   --output artifacts/momentum-v1 --quantile 0.2
+alphawatch run-portfolio --input observations.parquet --data-root data \
+  --version portfolio-v1 --weighting volatility --holding-periods 3 --rebalance-every 1
+alphawatch build-factor-diagnostics --input diagnostic_observations.parquet \
+  --data-root data --version diagnostics-v1 --quantiles 5
 ```
 
 Raw downloaded data is never committed. Every ingestion archives provider bytes, and every

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
+
+import polars as pl
 
 from alphawatch.exceptions import DataContractError, IdentityResolutionError
 
@@ -15,6 +18,8 @@ class SymbolMapping:
     exchange: str
     sector: str | None = None
     industry: str | None = None
+    cik: str | None = None
+    provider_id: str | None = None
 
     def __post_init__(self) -> None:
         if self.valid_to is not None and self.valid_to < self.valid_from:
@@ -51,3 +56,43 @@ class SecurityMaster:
                 f"expected exactly one mapping for {detail}; got {len(matches)}"
             )
         return matches[0]
+
+    def resolve_cik(self, cik: str, when: date) -> str:
+        normalized = cik.zfill(10)
+        matches = [
+            row.security_id
+            for row in self._mappings
+            if row.cik == normalized and row.contains(when)
+        ]
+        if len(set(matches)) != 1:
+            raise IdentityResolutionError(
+                f"expected exactly one security for CIK {normalized} on {when}; got {len(matches)}"
+            )
+        return matches[0]
+
+    def as_frame(self) -> pl.DataFrame:
+        return pl.DataFrame(
+            [
+                {
+                    "security_id": row.security_id,
+                    "ticker": row.ticker,
+                    "exchange": row.exchange,
+                    "valid_from": row.valid_from,
+                    "valid_to": row.valid_to,
+                    "sector": row.sector,
+                    "industry": row.industry,
+                    "cik": row.cik,
+                    "provider_id": row.provider_id,
+                }
+                for row in self._mappings
+            ]
+        )
+
+    def write(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self.as_frame().write_parquet(path)
+
+    @classmethod
+    def read(cls, path: Path) -> SecurityMaster:
+        mappings = [SymbolMapping(**row) for row in pl.read_parquet(path).to_dicts()]
+        return cls(mappings)

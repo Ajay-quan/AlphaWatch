@@ -2,9 +2,10 @@
 
 ## Current audited status
 
-Person 1 is approximately 40% complete. The repository contains useful foundations but no connected
-real-price-to-factor-return production workflow. The next release must satisfy
-`person1-definition-of-done.md`; documentation is not evidence of implementation.
+Person 1's public-data engineering scope is release-ready. The remaining unchecked acceptance
+items require a licensed or otherwise certified historical-security source, which the project has
+explicitly declined to purchase. Public-data research therefore remains correctly labeled
+`survivorship_safe=false`; this is an empirical-data limitation rather than unfinished factor code.
 
 ## Milestone 1 — implemented foundation
 
@@ -32,7 +33,7 @@ real-price-to-factor-return production workflow. The next release must satisfy
 - Fundamental formulas: size, value, profitability, investment, quality, accruals — complete
 - Winsorization, standardization, ranking, numeric neutralization — complete
 - Equal and auxiliary weighting — complete
-- Rolling portfolios, holding-period overlap, and exposure diagnostics — pending
+- Rolling portfolios, holding-period overlap, liquidity caps, and diagnostics — complete
 
 ## Data acquisition decision
 
