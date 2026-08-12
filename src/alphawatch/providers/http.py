@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 from dataclasses import dataclass
 from urllib.request import Request, urlopen
 
@@ -15,4 +16,4 @@ class HttpClient:
         request = Request(url, headers={"User-Agent": self.user_agent, "Accept-Encoding": "gzip"})
         with urlopen(request, timeout=self.timeout_seconds) as response:  # noqa: S310
             payload: bytes = response.read()
-            return payload
+            return gzip.decompress(payload) if payload.startswith(b"\x1f\x8b") else payload
